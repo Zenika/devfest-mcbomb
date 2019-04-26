@@ -52,7 +52,7 @@ void initGame(){
   buzzerTime = 0 ;
   ledStatus = LOW;
   for(int i=0;i<NUMPIXELS;i++){
-    pixels.setPixelColor(i, pixels.Color(255, 0, 0)); 
+    pixels.setPixelColor(i, pixels.Color(0, 0, 0)); 
   }
   pixels.show();
 
@@ -61,13 +61,22 @@ void initGame(){
 
 void win(){
   state = ENDING_STATE;
-  for(int i=0;i<NUMPIXELS;i++){
-    pixels.setPixelColor(i, pixels.Color(0, 255,0)); // Moderately bright green color.
-  }
-  pixels.show();
   Serial.println("YOU WIN :)");
-  delay(5000);
-
+  
+  // Blink green for 10 seconds
+  for(int j=0; j < 10;j++){
+    for(int i=0;i<NUMPIXELS;i++){
+      pixels.setPixelColor(i, pixels.Color(0, 255,0)); // Moderately bright green color.
+    }
+    pixels.show();
+    delay(500);
+    for(int i=0;i<NUMPIXELS;i++){
+      pixels.setPixelColor(i, pixels.Color(0, 0,0)); // Moderately bright green color.
+    }
+    pixels.show();
+    delay(500);
+  }
+  delay(3000);
 }
 
 void loose(){
@@ -76,13 +85,10 @@ void loose(){
   for(int i=0;i<NUMPIXELS;i++){
     pixels.setPixelColor(i, pixels.Color(255, 0,0)); // Moderately bright green color.
   }
-  digitalWrite(BUZZER, HIGH);
   pixels.show();
-  delay(5000);
-  digitalWrite(BUZZER, LOW); 
-  for(int i=0;i<NUMPIXELS;i++){
-    pixels.setPixelColor(i, pixels.Color(0, 0,0)); // Moderately bright green color.
-  }
+  tone(BUZZER, 4300, 3000);
+  delay(6000);
+
   // TODO: smoke lv10
 }
 
@@ -100,9 +106,11 @@ void running(){
   }
   if (digitalRead(BOOM) == LOW)  {
     loose();
+    return;
   }
   if (digitalRead(DEFUSE) == LOW)  {
     win();
+    return;
   }
   
   // APS per seconds
