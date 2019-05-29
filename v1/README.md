@@ -9,10 +9,12 @@
 - Confirmation visuelle du désamorcage : diminution de la luminosité + arrêt du décompte
 - Cycle de vie (STARTING, PLAYING, WINNING, LOOSING, ENDING)
 - Triggers affectés de manière aléatoire
+- Beep de stress pour accompagner la Led clignotante
+- Bruit d'explosion en cas d'explosion du système
+- Musique de la victoire : MacGyver theme
 
 ## TODO
-- Beep de stress pour accompagner la Led clignotante
-- Ruban RGB 
+- Ruban RGB (manque l'alimentation)
 
 # Cablage
 - 2 plaques: 1 Read Only et 1 à désamorcer
