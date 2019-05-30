@@ -11,4 +11,5 @@ This folder contains lot of sample written to test some things.
   - a class declared in an `.ino` file is not reachable from the main `ino` file.
   - a class declared in an `.cpp` file can't use the arduino functions (e.g. `tone()`, `noTone()` or `Serial.println()`).
 - `beeps`: keep using the "multithreading" to have a beep each second and read a button to make the beeps twice faster.
+- `led_strip` : just to play with the led strip we want to include one the wallet.
 

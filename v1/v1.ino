@@ -1,12 +1,21 @@
 #include <Wire.h>
 #include <Adafruit_LEDBackpack.h>
 #include <Adafruit_GFX.h>
+#include <Adafruit_NeoPixel.h>
 
 Adafruit_7segment matrix = Adafruit_7segment();
 
-#define BUZZER  11
-#define BUTTON   7
-#define LED      4
+#define BUZZER    10
+#define STRIP     12
+#define BUTTON     7
+#define LED        4
+#define NUMPIXELS 60
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, STRIP, NEO_GRB + NEO_KHZ800);
+uint32_t RED = strip.Color(30, 0, 0);
+uint32_t GREEN = strip.Color(0, 10, 0);
+uint32_t BLUE = strip.Color(0, 0, 10);
+uint32_t BLACK = strip.Color(0, 0, 0);
 
 unsigned long one_second_to_micros = 1000000;
 
@@ -73,7 +82,7 @@ int notes[] = { 0,
 };
 
 
-const char *song = "MacGyver:d=4,o=6,b=150:8b4,8e5,8a5,8b5,a5,8e5,8b4,8p,8e5,8a5,8b5,8a5,8e5,b4,8p,8e5,8a5,8b5,a5,8e5,8b4,8p,8a5,8d,8c,8d,8c,8b5,8a5,8b4,8e5,8a5,8b5,a5,8e5,8b4,8p,8e5,8a5,8b5,8a5,8e5,b4,8p,8e5,8a5,8b5,a5,8e5,8b4,8p,8a5,8d,8c,8d,8c,8b5,8a5,b5,8p,2b5,8p,b5,8p,a5,d.,b5,8p,2b5,8p,8b5,8p,2a5,p,8c,8c,8c,8c,8c,8c,2b5,16p,8f#5,8a5,8p,2g5,8p,8c,8c,8p,b5,8a5,8b5,8a5,8g5,8p,e,2a5,16p,8c,8c,8p,2b5,8p,8f#5,8a5,8p,2g5,8p,8c,8c,8p,4b5,8a5,8b5,8a5,8g5,8p,4e,2a5,2b5,32p,8c,8b5,8a5,c,8b5,8a5,8d,8c,8b5,d,8c,8b5,e,8d,8e,f#,b5,g,8p,f#,f,b5,8g,8e,8b5,8f#,8d,8a5,8e,8c,8g5,8d,8b5,8g5,8c,8e5,8b5,8d5,8c,8b5,8a5,8g5,a#5,a5,8g,8g5,8d,8g5,8d#,8d#5,8a#5,8a5,8g5,8g4,8d5,8g4,8d#5,8g4,8a#4,8a4,8g4,8g4,8g4,8g4,8g4,8g4,8g4";
+const char *song = "MacGyver:d=4,o=6,b=150:8b4,8e5,8a5,8b5,a5,8e5,8b4,8p,8e5,8a5,8b5,8a5,8e5,b4,8p,8e5,8a5,8b5,a5,8e5,8b4,8p,8a5,8d,8c,8d,8c,8b5,8a5,8b4,8e5,8a5,8b5,a5,8e5,8b4,8p,8e5,8a5,8b5,8a5,8e5,b4,8p,8e5,8a5,8b5,a5,8e5,8b4,8p,8a5,8d,8c,8d,8c,8b5,8a5,b5,8p,2b5,8p,b5,8p,a5,d.,b5,8p,2b5,8p,8b5,8p,2a5,p,8c,8c,8c,8c,8c,8c,8c,8c,2b5,16p,8f#5,8a5,8p,2g5,8p,8c,8c,8p,b5,8a5,8b5,8a5,8g5,8p,e,2a5,16p,8c,8c,8p,2b5,8p,8f#5,8a5,8p,2g5,8p,8c,8c,8p,4b5,8a5,8b5,8a5,8g5,8p,4e,2a5,2b5,32p,8c,8b5,8a5,c,8b5,8a5,8d,8c,8b5,d,8c,8b5,e,8d,8e,f#,b5,g,8p,f#,f,b5,8g,8e,8b5,8f#,8d,8a5,8e,8c,8g5,8d,8b5,8g5,8c,8e5,8b5,8d5,8c,8b5,8a5,8g5,a#5,a5,8g,8g5,8d,8g5,8d#,8d#5,8a#5,8a5,8g5,8g4,8d5,8g4,8d#5,8g4,8a#4,8a4,8g4,8g4,8g4,8g4,8g4,8g4,8g4";
 //const char *short_song = "MacGyver:d=4,o=6,b=150:1p,8c,8c,8c,8c,8c,8c,8c,8c,2b5,16p,8f#5,8a5,8p,2g5,8p,8c,8c,8p,b5,8a5,8b5,8a5,8g5,8p,e,2a5,16p,8c,8c,8p,2b5,8p,8f#5,8a5,8p,2g5,8p,8c,8c,8p,4b5,8a5,8b5,8a5,8g5,8p,4e,2a5,2b5,32p,8c,8b5,8a5,c,8b5,8a5,8d,8c,8b5,d,8c,8b5,e,8d,8e,f#,b5,g,8p,f#,f,b5,8g,8e,8b5,8f#,8d,8a5,8e,8c,8g5,8d,8b5,8g5,8c,8e5,8b5,8d5,8c,8b5,8a5,8g5,a#5,a5,8g,8g5,8d,8g5,8d#,8d#5,8a#5,8a5,8g5,8g4,8d5,8g4,8d#5,8g4,8a#4,8a4,8g4,8g4,8g4,8g4,8g4,8g4,8g4,8p$";
 
 class SongPlayer {
@@ -139,6 +148,7 @@ class SongPlayer {
 
     void stop_playing() {
       playing_song = false;
+      pinMode(BUZZER, INPUT);
       noTone(_pin);
     }
 
@@ -153,12 +163,14 @@ class SongPlayer {
       if (note_micros < note_duration) {
         // now, play the note or the pause
         if (note) {
+          pinMode(BUZZER, OUTPUT);
           tone(_pin, notes[(scale - 4) * 12 + note]);
         } else {
           // pause
         }
       } else {
     //  if (note_micros >= note_duration) {
+        pinMode(BUZZER, INPUT);
         noTone(_pin);
         
         // first, get note duration, if available
@@ -264,7 +276,7 @@ unsigned long BEEP_DURATION      =   100000; // microseconds ( 0.10 s)
 unsigned long WINNING_DURATION   = 60000000; // microseconds (60.00 s)
 unsigned long LOOSING_DURATION   = 10000000; // microseconds (10.00 s)
 unsigned long EXPLOSION_DURATION =  4000000; // microseconds ( 4.00 s)
-unsigned long TIME_STEP_US       =    20000; // microseconds ( 0.02 s)
+unsigned long TIME_STEP_US       =    20000; // microseconds ( 0.022 s)
 
 double PLAYING_DURATION_S =    60.00; // seconds (60.00 s)
 double TIME_STEP_S = 0.022; // seconds ( 0.022 s)
@@ -276,6 +288,7 @@ int speed = 1.00;
 
 int led_frequency = 1;
 int led_state = LOW;
+int strip_state = LOW;
 
 int beep_frequency = 1;
 
@@ -291,6 +304,7 @@ void setup() {
   digitalWrite(LED, LOW);
   pinMode(BUZZER, OUTPUT);
   noTone(BUZZER);
+  pinMode(BUZZER, INPUT);
   
   sp = new SongPlayer(song, BUZZER);
 
@@ -299,7 +313,10 @@ void setup() {
   matrix.begin(0x70);                 /* Adresse I2C de l'afficheur 7 segments */
   matrix.setBrightness(2);
 
-  while(!Serial);                     /* Wait until Serial port is enable */
+  strip.begin();
+  switch_strip_off();
+
+//  while(!Serial);                     /* Wait until Serial port is enable */
   Serial.println("Application Up !!!");
   waiting();
 }
@@ -315,41 +332,43 @@ void loop() {
       break;
     case PLAYING:
       play();
-      beep();
       blink_led();
+      beep();
+      strip();
       break;
     case WINNING:
-      win();
       sp->play_note();
+      win(); // don't move this line up
       break;
     case LOOSING:
-      loose();
       explode();
+      blink_strip(RED, 800000, 1);
+      loose(); // don't move this line up
       break;
   }
-
-//  delay(10);
 }
 
 
 unsigned long beep_start;  // The start point time in microseconds of the beep
 void beep() {
   unsigned long beep_micros = micros() - beep_start;
-  Serial.print("beep_start: "); Serial.println(beep_start);
-  Serial.print("beep_micros: "); Serial.println(beep_micros);
+//  Serial.print("beep_start: "); Serial.println(beep_start);
+//  Serial.print("beep_micros: "); Serial.println(beep_micros);
   if (beep_micros >= BEEP_DURATION) {
     //Serial.println("BEEP OFF");
+    pinMode(BUZZER, INPUT);
     noTone(BUZZER);
   } else {
     //Serial.println("BEEP ON");
+    pinMode(BUZZER, OUTPUT);
     tone(BUZZER, 1000);
   }
 
   double frequency = beep_frequency * speed;
   if (beep_micros >= (one_second_to_micros / frequency)) {
-    Serial.println("BEEP");
-    _countdown_fix -= 1.00 / frequency;  // this is a tricky fix to synchronize
-    _countdown = _countdown_fix;                      // the beep, the blink and the countdown
+    Serial.print("BEEP / ");Serial.print(_countdown_fix);Serial.print(" / ");Serial.println(_countdown);
+    _countdown_fix -= 1.00 / beep_frequency;  // this is a tricky fix to synchronize
+    _countdown = _countdown_fix;              // the beep, the blink and the countdown
     beep_start = micros(); // start another beep
   }
 
@@ -396,19 +415,44 @@ void blink_led() {
   }
 }
 
+unsigned long blink_strip_start;  // The start point time in microseconds of the step strip blinking
+void blink_strip(uint32_t color, unsigned long light_duration, int frequency) {
+  unsigned long blink_strip_micros = micros() - blink_strip_start;
+  // do I have to change the STRIP state ?
+  if (blink_strip_micros >= light_duration) {
+    if (strip_state == HIGH) {
+      switch_strip_off();
+    }
+  } else {
+    if (strip_state == LOW) {
+      Serial.println("STRIP ON");
+      switch_strip_on(color);
+    }
+  }
+
+  if (blink_strip_micros >= (one_second_to_micros / frequency)) {
+    blink_strip_start = micros(); // start another strip cycle
+  }
+}
+
 
 
 // ==============================================================================================================
 // method ran only once
 void waiting() {
   sp->stop_playing(); // when coming from `win()`
+  pinMode(BUZZER, INPUT);
   noTone(BUZZER); // when coming from `loose()`
 
   display(10000); // displays "----" on the 7seg
   matrix.blinkRate(HT16K33_BLINK_OFF);
   matrix.setBrightness(2);
 
-  state = WAITING;  
+  switch_strip_on(BLUE);
+  switch_led_off();
+  
+  state = WAITING;
+  delay(1000);
 }
 
 // method ran in loop while state is WAITING
@@ -449,6 +493,7 @@ void start() {
 
 // ==============================================================================================================
 unsigned long countdown_start; // The start point time in microseconds of the step PLAYING
+unsigned long strip_start; // The start point time in microseconds of the step PLAYING
 // method ran only once
 void playing() {
 //  Serial.println("PLAYING");
@@ -456,12 +501,13 @@ void playing() {
   countdown_start = micros();
   beep_start = micros();
   led_start = micros() - one_second_to_micros; // "- one_second_to_micros" to light on the led as soon as playing
+  strip_start = micros() - one_second_to_micros;
   state = PLAYING;
 }
 
 // method ran in loop while state is PLAYING
 void play() {
-  Serial.print("PLAY => "); Serial.println(_countdown);
+//  Serial.print("PLAY => "); Serial.println(_countdown);
   unsigned long countdown_micros = micros() - countdown_start;
   if (countdown_micros >= TIME_STEP_US) {
     _countdown -= TIME_STEP_S * speed;
@@ -469,16 +515,22 @@ void play() {
     countdown_start = micros(); // start another countdown
   }
 
-  if (digitalRead(WIRE_1) == LOW) {
+  if (_countdown <= 0.00 || digitalRead(WIRE_1) == LOW) {
+    loosing();
+  } else if (digitalRead(WIRE_2) == LOW) {
     winning();
-  }
-  if (digitalRead(WIRE_2) == LOW) {
+  } else if (digitalRead(WIRE_3) == LOW) {
     speed = 2;
   }
-  if (_countdown <= 0.00 || digitalRead(WIRE_3) == LOW) {
-    loosing();
-  }
+}
 
+void strip() {
+  unsigned long strip_micros = micros() - strip_start;
+  if (strip_micros >= (one_second_to_micros/speed)) {
+    strip.fill(BLACK, _countdown_fix);
+    strip.show();
+    strip_start = micros();
+  }
 }
 
 // ==============================================================================================================
@@ -490,6 +542,7 @@ void winning() {
   state = WINNING;
   matrix.setBrightness(0);
   switch_led_off();
+  switch_strip_on(GREEN);
   sp->start_playing();
 }
 
@@ -505,20 +558,16 @@ void win() {
 
 // ==============================================================================================================
 unsigned long explode_start;  // The start point time in microseconds of the step LOOSING
-int explode_frequency; // The frequency of the explosion
 // method ran in loop while state is LOOSING
 void explode() {
   Serial.println("EXPLODE");
   unsigned long explode_micros = micros() - explode_start;
   if (explode_micros >= EXPLOSION_DURATION) {
+    pinMode(BUZZER, INPUT);
     noTone(BUZZER);
   } else {
-    explode_frequency *= 100;
-    explode_frequency -= 5;
-    explode_frequency /= 100;
-    int low = explode_frequency - 10;
-    int high = explode_frequency + 10;
-    tone(BUZZER, random(low, high));    
+    pinMode(BUZZER, OUTPUT);
+    tone(BUZZER, random(280, 320));    
   }
 }
 
@@ -526,12 +575,10 @@ unsigned long loose_start;  // The start point time in microseconds of the step 
 // method ran only once
 void loosing() {
   Serial.println("LOOSING");
-  loose_start = micros();
   state = LOOSING;
-  switch_led_off();
-
   explode_start = micros();
-  explode_frequency = 300;
+  loose_start = micros();
+  switch_led_off();
 
   display(8888);
   matrix.blinkRate(HT16K33_BLINK_2HZ);
@@ -566,15 +613,29 @@ void randomize_triggers() {
 }
 
 
+void switch_strip_on(uint32_t color) {
+  Serial.println("STRIP ON");
+  strip.fill(color);
+  strip.show();
+  strip_state = HIGH;
+}
+
+void switch_strip_off() {
+  Serial.println("STRIP OFF");
+  strip.clear();
+  strip.show();
+  strip_state = LOW;
+}
+
 void switch_led_on() {
-//  Serial.println("LIGHT ON");
+//  Serial.println("LED ON");
   led_state = HIGH;
   digitalWrite(LED, led_state);
 }
 
 
 void switch_led_off() {
-//  Serial.println("LIGHT OFF");
+//  Serial.println("LED OFF");
   led_state = LOW;
   digitalWrite(LED, led_state);
 }
