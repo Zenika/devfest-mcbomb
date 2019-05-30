@@ -12,9 +12,13 @@
 - Beep de stress pour accompagner la Led clignotante
 - Bruit d'explosion en cas d'explosion du système
 - Musique de la victoire : MacGyver theme
+- Ruban RGB :
+  - Éteind une led toutes les secondes
+  - Clignote en rouge en cas d'explosion
+  - Fixe Vert en cas de désamorcage
 
 ## TODO
-- Ruban RGB (manque l'alimentation)
+Nothing more to do.
 
 # Cablage
 - 2 plaques: 1 Read Only et 1 à désamorcer
