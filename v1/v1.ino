@@ -11,11 +11,11 @@ Adafruit_7segment matrix = Adafruit_7segment();
 #define LED        4
 #define NUMPIXELS 60
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, STRIP, NEO_GRB + NEO_KHZ800);
-uint32_t RED = strip.Color(30, 0, 0);
-uint32_t GREEN = strip.Color(0, 10, 0);
-uint32_t BLUE = strip.Color(0, 0, 10);
-uint32_t BLACK = strip.Color(0, 0, 0);
+Adafruit_NeoPixel _strip = Adafruit_NeoPixel(NUMPIXELS, STRIP, NEO_GRB + NEO_KHZ800);
+uint32_t RED = _strip.Color(30, 0, 0);
+uint32_t GREEN = _strip.Color(0, 10, 0);
+uint32_t BLUE = _strip.Color(0, 0, 10);
+uint32_t BLACK = _strip.Color(0, 0, 0);
 
 unsigned long one_second_to_micros = 1000000;
 
@@ -86,7 +86,7 @@ const char *song = "MacGyver:d=4,o=6,b=150:8b4,8e5,8a5,8b5,a5,8e5,8b4,8p,8e5,8a5
 //const char *short_song = "MacGyver:d=4,o=6,b=150:1p,8c,8c,8c,8c,8c,8c,8c,8c,2b5,16p,8f#5,8a5,8p,2g5,8p,8c,8c,8p,b5,8a5,8b5,8a5,8g5,8p,e,2a5,16p,8c,8c,8p,2b5,8p,8f#5,8a5,8p,2g5,8p,8c,8c,8p,4b5,8a5,8b5,8a5,8g5,8p,4e,2a5,2b5,32p,8c,8b5,8a5,c,8b5,8a5,8d,8c,8b5,d,8c,8b5,e,8d,8e,f#,b5,g,8p,f#,f,b5,8g,8e,8b5,8f#,8d,8a5,8e,8c,8g5,8d,8b5,8g5,8c,8e5,8b5,8d5,8c,8b5,8a5,8g5,a#5,a5,8g,8g5,8d,8g5,8d#,8d#5,8a#5,8a5,8g5,8g4,8d5,8g4,8d#5,8g4,8a#4,8a4,8g4,8g4,8g4,8g4,8g4,8g4,8g4,8p$";
 
 class SongPlayer {
-    public:
+  public:
     SongPlayer(const char *s, char pin) {
       _pin = pin;
       song_to_play = s;
@@ -313,7 +313,7 @@ void setup() {
   matrix.begin(0x70);                 /* Adresse I2C de l'afficheur 7 segments */
   matrix.setBrightness(2);
 
-  strip.begin();
+  _strip.begin();
   switch_strip_off();
 
 //  while(!Serial);                     /* Wait until Serial port is enable */
@@ -331,10 +331,11 @@ void loop() {
       start();
       break;
     case PLAYING:
+      countdown();
       play();
       blink_led();
+      strip(); // `strip` before `beep` because of performance issue of the Adafruit API
       beep();
-      strip();
       break;
     case WINNING:
       sp->play_note();
@@ -366,9 +367,6 @@ void beep() {
 
   double frequency = beep_frequency * speed;
   if (beep_micros >= (one_second_to_micros / frequency)) {
-    Serial.print("BEEP / ");Serial.print(_countdown_fix);Serial.print(" / ");Serial.println(_countdown);
-    _countdown_fix -= 1.00 / beep_frequency;  // this is a tricky fix to synchronize
-    _countdown = _countdown_fix;              // the beep, the blink and the countdown
     beep_start = micros(); // start another beep
   }
 
@@ -469,8 +467,8 @@ unsigned long start_start; // The start point time in microseconds of the step S
 void starting() {
 //  Serial.println("STARTING");
   // Reseting the game
-  _countdown = PLAYING_DURATION_S;
   _countdown_fix = PLAYING_DURATION_S;
+  _countdown = PLAYING_DURATION_S;
   speed = 1;
   led_frequency = 1;
   beep_frequency = 1;
@@ -493,12 +491,14 @@ void start() {
 
 // ==============================================================================================================
 unsigned long countdown_start; // The start point time in microseconds of the step PLAYING
+unsigned long countdown_fix_start; // The start point time in microseconds of the step PLAYING
 unsigned long strip_start; // The start point time in microseconds of the step PLAYING
 // method ran only once
 void playing() {
 //  Serial.println("PLAYING");
   // Prepare the next step
   countdown_start = micros();
+  countdown_fix_start = micros();
   beep_start = micros();
   led_start = micros() - one_second_to_micros; // "- one_second_to_micros" to light on the led as soon as playing
   strip_start = micros() - one_second_to_micros;
@@ -507,14 +507,6 @@ void playing() {
 
 // method ran in loop while state is PLAYING
 void play() {
-//  Serial.print("PLAY => "); Serial.println(_countdown);
-  unsigned long countdown_micros = micros() - countdown_start;
-  if (countdown_micros >= TIME_STEP_US) {
-    _countdown -= TIME_STEP_S * speed;
-    display(_countdown);
-    countdown_start = micros(); // start another countdown
-  }
-
   if (_countdown <= 0.00 || digitalRead(WIRE_1) == LOW) {
     loosing();
   } else if (digitalRead(WIRE_2) == LOW) {
@@ -524,17 +516,37 @@ void play() {
   }
 }
 
+// method ran in loop while state is PLAYING
+void countdown() {
+  unsigned long countdown_micros = micros() - countdown_start;
+  if (countdown_micros >= TIME_STEP_US) {
+    _countdown -= TIME_STEP_S * speed;
+    display(_countdown);
+    countdown_start = micros(); // start another countdown
+  }
+
+  // fix the countdown by updating it to the good count each seconds
+  unsigned long countdown_fix_micros = micros() - countdown_fix_start;
+  if (countdown_fix_micros >= one_second_to_micros / speed) {
+    _countdown_fix -= 1.00;       // this is a tricky fix to synchronize
+    _countdown = _countdown_fix;  // the beep, the blink and the countdown
+    countdown_fix_start = micros();
+  }
+}
+
+// method ran in loop while state is PLAYING
 void strip() {
   unsigned long strip_micros = micros() - strip_start;
   if (strip_micros >= (one_second_to_micros/speed)) {
-    strip.fill(BLACK, _countdown_fix);
-    strip.show();
+    _strip.fill(BLACK, _countdown_fix);
+    _strip.show();
     strip_start = micros();
   }
 }
 
 // ==============================================================================================================
 unsigned long win_start;  // The start point time in microseconds of the step WINNING
+bool want_to_stop = false;
 // method ran only once
 void winning() {
   Serial.println("WINNING");
@@ -550,8 +562,19 @@ void winning() {
 void win() {
   Serial.println("WINNING");
   unsigned long win_micros = micros() - win_start;
-  if (win_micros >= WINNING_DURATION ) {
+  if (win_micros >= WINNING_DURATION) {
+    want_to_stop = false;
     waiting();
+  } else {
+    // button pushed down to stop the winning song
+    if (!want_to_stop && digitalRead(BUTTON) == HIGH) {
+      want_to_stop = true;
+    }
+    // button released to finish the stop procedure
+    if (want_to_stop && digitalRead(BUTTON) == LOW) {
+      want_to_stop = false;
+      waiting();
+    }
   }
 }
 
@@ -615,15 +638,15 @@ void randomize_triggers() {
 
 void switch_strip_on(uint32_t color) {
   Serial.println("STRIP ON");
-  strip.fill(color);
-  strip.show();
+  _strip.fill(color);
+  _strip.show();
   strip_state = HIGH;
 }
 
 void switch_strip_off() {
   Serial.println("STRIP OFF");
-  strip.clear();
-  strip.show();
+  _strip.clear();
+  _strip.show();
   strip_state = LOW;
 }
 

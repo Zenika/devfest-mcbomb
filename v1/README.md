@@ -4,16 +4,17 @@
 - Bouton START
 - Délai de 3 secondes avant début du décompte (Constante dans le code)
 - Compte à rebours de 60 secondes (Constante dans le code)
-- Led à fréquence variable en fonction du temps restant
+- LED à fréquence variable en fonction du temps restant
 - Confirmation visuelle de l'explosion : augmentation de la luminosité + glignotement de "8888" sur l'afficheur
 - Confirmation visuelle du désamorcage : diminution de la luminosité + arrêt du décompte
-- Cycle de vie (STARTING, PLAYING, WINNING, LOOSING, ENDING)
+- Cycle de vie (`WAITING`, `STARTING`, `PLAYING`, `WINNING`, `LOOSING`)
 - Triggers affectés de manière aléatoire
-- Beep de stress pour accompagner la Led clignotante
+- Beep de stress pour accompagner la LED clignotante
 - Bruit d'explosion en cas d'explosion du système
 - Musique de la victoire : MacGyver theme
+- Possibilité d'arrêter la musique par pression sur le boutton
 - Ruban RGB :
-  - Éteind une led toutes les secondes
+  - Éteind une LED toutes les secondes
   - Clignote en rouge en cas d'explosion
   - Fixe Vert en cas de désamorcage
 
